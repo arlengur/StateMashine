@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachine;
+import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
@@ -22,7 +23,7 @@ import static ru.arlen.statemachine.Events.*;
 import static ru.arlen.statemachine.States.*;
 
 @Configuration
-@EnableStateMachine
+@EnableStateMachineFactory
 @Slf4j
 public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States, Events> {
     @Override
