@@ -1,16 +1,22 @@
 package ru.arlen.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachine;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
+import org.springframework.statemachine.listener.StateMachineListener;
+import org.springframework.statemachine.listener.StateMachineListenerAdapter;
+import org.springframework.statemachine.state.State;
+import org.springframework.statemachine.transition.Transition;
 import ru.arlen.statemachine.Events;
 import ru.arlen.statemachine.States;
+
+import java.util.Optional;
 
 import static ru.arlen.statemachine.Events.*;
 import static ru.arlen.statemachine.States.*;
@@ -44,7 +50,8 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
 
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
-        states.withStates().initial(BACKLOG)
+        states.withStates()
+                .initial(BACKLOG)
                 .state(IN_PROGRESS, timeToWork(), timeToSleep())
                 .state(TESTING, deployAction()).state(DONE);
     }
@@ -63,6 +70,28 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
 
     @Override
     public void configure(StateMachineConfigurationConfigurer<States, Events> config) throws Exception {
-        config.withConfiguration().autoStartup(true);
+        config.withConfiguration()
+                .listener(listener())
+                .autoStartup(true);
+    }
+
+    private StateMachineListener<States, Events> listener() {
+        return new StateMachineListenerAdapter<States, Events>() {
+            @Override
+            public void transition(Transition transition) {
+                log.info("MOVE from {} to {}",
+                        ofNullableState(transition.getSource()),
+                        ofNullableState(transition.getTarget()));
+            }
+
+            private Object ofNullableState(State s) {
+                return Optional.ofNullable(s).map(State::getId).orElse(null);
+            }
+
+            @Override
+            public void eventNotAccepted(Message<Events> event) {
+                log.error("not accepted: {}", event);
+            }
+        };
     }
 }
