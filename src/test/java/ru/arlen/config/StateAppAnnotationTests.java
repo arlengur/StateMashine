@@ -58,6 +58,7 @@ public class StateAppAnnotationTests {
 
     @Test
     public void testRockStar() {
+        stateMachine.sendEvent(DEPLOY);
         stateMachine.sendEvent(ROCK_STAR);
         assertThat(stateMachine.getState().getId()).isEqualTo(TESTING);
     }
