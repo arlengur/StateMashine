@@ -4,12 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.statemachine.action.Action;
-import org.springframework.statemachine.config.EnableStateMachine;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
+import org.springframework.statemachine.guard.Guard;
 import org.springframework.statemachine.listener.StateMachineListener;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
@@ -37,7 +37,6 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 .source(IN_PROGRESS)
                 .target(TESTING)
                 .event(FINISH_FEATURE)
-                .action(deployAction())
                 .and()
                 .withExternal()
                 .source(TESTING)
@@ -52,7 +51,13 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 .withExternal()
                 .source(BACKLOG)
                 .target(TESTING)
-                .event(ROCK_STAR);
+                .event(ROCK_STAR)
+                .guard(deployedGuard())
+                .and()
+                .withInternal()
+                .source(BACKLOG)
+                .event(DEPLOY)
+                .action(deployAction());
     }
 
     @Override
@@ -73,7 +78,14 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
     }
 
     private Action<States, Events> deployAction() {
-        return context -> log.warn("Deploing...");
+        return context -> {
+            log.warn("Deploing...");
+            context.getExtendedState().getVariables().put("deployed", true);
+        };
+    }
+
+    private Guard<States, Events> deployedGuard() {
+        return context -> (Boolean) context.getExtendedState().getVariables().get("deployed");
     }
 
     @Override
