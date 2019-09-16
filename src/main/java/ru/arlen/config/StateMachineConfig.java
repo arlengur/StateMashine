@@ -37,6 +37,7 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 .source(IN_PROGRESS)
                 .target(TESTING)
                 .event(FINISH_FEATURE)
+                .action(deployAction())
                 .and()
                 .withExternal()
                 .source(TESTING)
@@ -46,7 +47,12 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 .withExternal()
                 .source(TESTING)
                 .target(IN_PROGRESS)
-                .event(QA_TEAM_REJECT);
+                .event(QA_TEAM_REJECT)
+                .and()
+                .withExternal()
+                .source(BACKLOG)
+                .target(TESTING)
+                .event(ROCK_STAR);
     }
 
     @Override
@@ -54,7 +60,8 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
         states.withStates()
                 .initial(BACKLOG)
                 .state(IN_PROGRESS, timeToWork(), timeToSleep())
-                .state(TESTING, deployAction()).state(DONE);
+                .state(TESTING)
+                .state(DONE);
     }
 
     private Action<States, Events> timeToSleep() {

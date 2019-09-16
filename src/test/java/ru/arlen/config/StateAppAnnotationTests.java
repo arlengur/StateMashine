@@ -55,4 +55,10 @@ public class StateAppAnnotationTests {
     public void wire() {
         assertThat(stateMachine.getState().getId()).isEqualTo(BACKLOG);
     }
+
+    @Test
+    public void testRockStar() {
+        stateMachine.sendEvent(ROCK_STAR);
+        assertThat(stateMachine.getState().getId()).isEqualTo(TESTING);
+    }
 }
