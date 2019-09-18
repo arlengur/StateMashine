@@ -1,4 +1,4 @@
-package ru.arlen.config;
+package ru.arlen;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
